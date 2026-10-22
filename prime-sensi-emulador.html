@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRIME SENSI · Emulador</title>
+<style>
+:root{--bg:#08090d;--panel:#11131a;--panel2:#191c25;--border:#292d39;--text:#f4f5f8;--muted:#9298a8;--accent:#00e5ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+header{padding:26px 18px 20px;text-align:center;border-bottom:1px solid var(--border);background:linear-gradient(145deg,#111721,#08090d 75%)}
+.logo{font-size:30px;font-weight:900;letter-spacing:3px}
+.logo span{color:#a855f7}
+main{width:min(680px,100%);margin:auto;padding:18px 14px 35px}
+.section{background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:17px;margin-bottom:16px}
+.section-title{font-size:13px;font-weight:800;letter-spacing:1.3px;margin:0 0 17px}
+.section-title span{color:var(--accent)}
+label{display:block;font-size:12px;color:#c5c9d4;margin:13px 0 7px}
+input,select{width:100%;min-height:45px;background:var(--panel2);border:1px solid var(--border);border-radius:9px;color:var(--text);padding:11px;font-size:14px;outline:none}
+input:focus,select:focus{border-color:var(--accent)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+button{border:0;border-radius:9px;padding:13px;font-weight:800;cursor:pointer;font-size:13px}
+.primary{width:100%;color:#001014;background:linear-gradient(100deg,var(--accent),#00aaff);margin-top:18px}
+.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--border)}
+.opt{display:block;width:100%;text-align:left;margin-top:6px;padding:11px;background:var(--panel2);color:var(--text);border:1px solid var(--border);font-weight:600}
+.opt:hover,.opt.hi{border-color:var(--accent)}
+.opt.free{color:var(--accent)}
+.conf{margin-top:8px;background:var(--panel2);border:1px solid var(--accent);border-radius:10px;padding:13px;font-size:13px}
+.conf .row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:11px}
+.ok{border-color:var(--border)}
+.ok b{color:var(--accent)}
+.hint{color:var(--muted);font-size:11px;line-height:1.5;margin-top:8px}
+.result{display:none}
+.result-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.result-head h3{margin:0;font-size:15px}
+.values{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.value-card{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:13px}
+.value-card small{display:block;color:var(--muted);font-size:11px;margin-bottom:9px}
+.value-card strong{color:var(--accent);font-size:25px}
+.value-card em{display:block;font-style:normal;color:var(--muted);font-size:10px;margin-top:6px}
+.tips .hint{border-top:1px solid var(--border);padding-top:8px}
+.result-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:13px}
+.status{font-size:12px;color:var(--accent);min-height:15px;margin-top:10px}
+footer{text-align:center;padding:10px 15px 30px;color:var(--muted);font-size:11px}
+@media(max-width:360px){.grid{grid-template-columns:1fr}.logo{font-size:26px}}
+</style>
+</head>
+<body>
+<header><div class="logo">PRIME <span>SENSI</span></div></header>
+<main>
+<section class="section">
+<h2 class="section-title"><span>01 /</span> EMULADOR E CELULAR</h2>
+<div class="grid">
+<div><label for="emu">Emulador</label><select id="emu"></select></div>
+<div><label for="res">Resolução do emulador</label><select id="res"><option value="1280">1280×720</option><option value="1600">1600×900</option><option value="1920" selected>1920×1080</option><option value="2560">2560×1440</option></select></div>
+</div>
+
+<label>Eixo atual do emulador (0 a 10.0)</label>
+<div class="grid">
+<div><label for="xc" style="margin-top:0">X · esquerda e direita</label><input id="xc" type="number" inputmode="decimal" min="0" max="10" step="0.1" placeholder="Ex.: 5.0"></div>
+<div><label for="yc" style="margin-top:0">Y · cima e baixo (subir a mira)</label><input id="yc" type="number" inputmode="decimal" min="0" max="10" step="0.1" placeholder="Ex.: 4.0"></div>
+</div>
+<div class="hint">Digite o valor que está usando hoje. O gerador sugere novos valores na mesma escala e não se afasta demais dos seus.</div>
+
+<label for="psearch">Pesquisar celular do emulador</label>
+<input id="psearch" type="search" placeholder="Ex.: Galaxy S23, Redmi Note 13 Pro, POCO F5" autocomplete="off">
+<div id="psearchlist"></div><div id="psearchconf"></div>
+
+<label for="objective">Objetivo</label>
+<select id="objective"><option value="capa">Subir capa</option><option value="rush">Rush</option><option value="balanced">Equilibrada</option><option value="precision">Precisão</option></select>
+</section>
+
+<section class="section">
+<h2 class="section-title"><span>02 /</span> MOUSE</h2>
+<label for="msearch" style="margin-top:0">Pesquisar mouse</label>
+<input id="msearch" type="search" placeholder="Ex.: G502, DeathAdder V2, Redragon M711" autocomplete="off">
+<div id="msearchlist"></div><div id="msearchconf"></div>
+<a id="mweb" class="opt" target="_blank" rel="noopener" style="display:none;text-decoration:none;text-align:center">Pesquisar o sensor deste mouse na web</a>
+<div class="hint">Não achou o seu? Digite o nome, informe a DPI máxima da ficha técnica (se souber) e toque em "Usar meu mouse". Sem a DPI, uso 3200 como referência.</div>
+<label for="mlink">Ou cole o link do mouse (loja ou fabricante)</label>
+<input id="mlink" type="url" placeholder="Ex.: https://.../g502-hero-gaming-mouse...">
+<div class="hint" id="mlinkstatus"></div>
+<label for="mmax">DPI máxima do mouse (opcional)</label>
+<input id="mmax" type="number" inputmode="numeric" min="100" max="26000" placeholder="Ex.: 16000">
+<label for="msensor">Sensor do mouse (opcional, como está na ficha técnica)</label>
+<input id="msensor" type="text" placeholder="Ex.: HERO 25K, PMW3389, PAW3395">
+<div class="hint">Se você informar o sensor, ele aparece no resumo e nos detalhes do mouse. Ele não muda o cálculo, que usa a DPI máxima e a classe do sensor.</div>
+<label for="msoft">Software do mouse</label>
+<select id="msoft"></select>
+<div class="grid">
+<div><label for="dpi">DPI do mouse</label><input id="dpi" type="number" inputmode="numeric" min="100" max="26000" placeholder="Vazio = recomendada"></div>
+<div><label for="poll">Taxa de polling</label><select id="poll"><option value="125">125 Hz</option><option value="500">500 Hz</option><option value="1000" selected>1000 Hz</option><option value="2000">2000 Hz ou mais</option></select></div>
+</div>
+</section>
+
+<section class="section">
+<h2 class="section-title"><span>03 /</span> AJUSTES DO MOUSE E DISPARO</h2>
+<div class="grid">
+<div><label for="snap">Angle snap</label><select id="snap"><option value="nao">Desligado</option><option value="sim">Ligado</option><option value="ns">Não sei</option></select></div>
+<div><label for="fix">MouseFix</label><select id="fix"><option value="nao">Não apliquei</option><option value="sim">Apliquei</option></select></div>
+<div><label for="raw">Raw Accel</label><select id="raw"><option value="nao">Não uso</option><option value="lin">Uso, sem aceleração</option><option value="acc">Uso, com aceleração</option></select></div>
+<div><label for="enh">Aprimorar precisão do ponteiro</label><select id="enh"><option value="nao">Desligada</option><option value="sim">Ligada</option><option value="ns">Não sei</option></select></div>
+</div>
+<label for="fire">Modo de disparo</label>
+<select id="fire"><option value="hold">Segurar o clique (rajada)</option><option value="tap">Toque curto (tiro a tiro)</option><option value="toggle">Alternar (liga e desliga)</option></select>
+<button class="primary" id="generate">GERAR SENSIBILIDADE</button>
+</section>
+
+<section class="section result" id="result">
+<div class="result-head"><h3>SUA CONFIGURAÇÃO</h3><span style="font-size:11px;color:var(--accent)">PRIME SENSI</span></div>
+<div class="hint" id="summary"></div>
+<div class="values" id="values" style="margin-top:14px"></div>
+<div class="tips" id="tips" style="margin-top:14px"></div>
+<div class="result-actions"><button class="secondary" id="copy">COPIAR CONFIGURAÇÃO</button><button class="secondary" id="refresh">ATUALIZAR</button></div>
+<div class="status" id="copyStatus"></div>
+</section>
+
+<section class="section">
+<h2 class="section-title"><span>04 /</span> COMO FUNCIONA</h2>
+<p class="hint">Os valores X e Y são calculados por fórmula, sem números aleatórios, a partir da DPI efetiva do mouse (limitada pelo sensor), da resolução, do objetivo, do modo de disparo, dos ajustes de aceleração e do perfil do celular. Mesmos dados, mesmo resultado.</p>
+<p class="hint">Os valores são ponto de partida. Teste no treino e mude de 3 a 5% por vez.</p>
+</section>
+</main>
+<footer>PRIME SENSI · FERRAMENTA DE CONFIGURAÇÃO PARA FREE FIRE</footer>
+
+<script>
+"use strict";
+const $=i=>document.getElementById(i),lim=(v,a,b)=>Math.max(a,Math.min(b,v));
+const EMU={
+"BlueStacks 5":"Ícone de teclado (Controles do jogo) → controle “Mirar, girar e atirar” → Sensibilidade do mouse X e Y.",
+"MSI App Player":"Base parecida com a do BlueStacks: Controles do jogo → controle de mira → sensibilidade X e Y.",
+"LDPlayer 9":"Mapeamento de teclas → controle de mira. O nome do campo de velocidade do mouse muda conforme a versão.",
+"MEmu":"Mapeamento de teclas → controle de mira. Procure o ajuste de velocidade do mouse.",
+"NoxPlayer":"Controle de teclado → controle de mira. Procure o ajuste de velocidade do mouse.",
+"Outro emulador":"Procure o ajuste de sensibilidade do mouse no mapeamento de teclas da mira."};
+
+/* ===== Celulares ===== */
+const P=[],ph=(b,p,s)=>s.split(",").forEach(m=>P.push({b,m:p+m}));
+ph("Samsung","Galaxy ","S20,S20+,S20 Ultra,S20 FE,S21,S21+,S21 Ultra,S21 FE,S22,S22+,S22 Ultra,S23,S23+,S23 Ultra,S23 FE,S24,S24+,S24 Ultra,S24 FE,S25,S25+,S25 Ultra,Note 10,Note 10+,Note 20,Note 20 Ultra,A12,A13,A14,A15,A22,A23,A24,A25,A32,A33,A34,A35,A52,A53,A54,A55,A72,A73,M13,M14,M23,M33,M34,M53,M54,Z Flip 5,Z Fold 5");
+ph("Xiaomi","Xiaomi ","11T,11T Pro,12,12 Pro,12T,12T Pro,13,13 Pro,13T,13T Pro,14,14 Pro,14 Ultra,14T,14T Pro,15,15 Ultra");
+ph("Xiaomi","Mi ","10,10T,10T Pro,11,11 Ultra");
+ph("Redmi","Redmi ","9,10,12,13C,Note 9 Pro,Note 10,Note 10 Pro,Note 11,Note 11 Pro,Note 12,Note 12 Pro,Note 12 Pro+,Note 13,Note 13 Pro,Note 13 Pro+,Note 14,Note 14 Pro,Note 14 Pro+,K40,K50,K60,K70");
+ph("POCO","POCO ","X3 Pro,X4 Pro,X5,X5 Pro,X6,X6 Pro,X7,X7 Pro,F3,F4,F5,F5 Pro,F6,F6 Pro,F7,F7 Pro,F7 Ultra,M5,M6,M6 Pro");
+ph("Motorola","Moto ","G23,G24,G34,G54,G64,G84,G85,E22,E32");
+ph("Motorola","Edge ","30,40,50,50 Pro,60");
+ph("OnePlus","OnePlus ","8T,9,9 Pro,10 Pro,10T,11,12,12R,13,Nord 2,Nord 3,Nord CE 3,Nord 4");
+ph("Realme","Realme ","9 Pro,10 Pro,11 Pro,12 Pro,13 Pro,GT 2,GT 2 Pro,GT 3,GT 5,GT 6,GT 7,GT Neo 3,GT Neo 5");
+ph("OPPO","OPPO ","Reno 8,Reno 10,Reno 11,Reno 12,Reno 13,Find X5,Find X5 Pro,Find X6 Pro,Find X7,Find X8,A58,A78");
+ph("vivo","vivo ","V27,V29,V30,V40,Y22,Y27,Y36,X80,X90 Pro,X100 Pro,X200 Pro");
+ph("ASUS","ROG Phone ","5,5s,6,6D,7,7 Ultimate,8,8 Pro,9,9 Pro");
+ph("ASUS","Zenfone ","9,10,11 Ultra,12 Ultra");
+ph("Google","Pixel ","6,6 Pro,6a,7,7 Pro,7a,8,8 Pro,8a,9,9 Pro,9 Pro XL,10,10 Pro");
+ph("Huawei","Huawei ","P40,P50,P60 Pro,Mate 50,Mate 60 Pro,Nova 11,Pura 70");
+ph("Honor","Honor ","70,90,200,200 Pro,Magic5 Pro,Magic6 Pro,Magic7 Pro");
+ph("Infinix","Infinix ","Hot 30,Hot 40 Pro,Hot 50,Note 30,Note 40 Pro,Note 50,GT 10 Pro,GT 20 Pro,Zero 30,Zero 40");
+ph("Tecno","Tecno ","Spark 10,Spark 20,Spark 30,Pova 5,Pova 6,Pova 6 Pro,Camon 30,Phantom X2");
+ph("Sony","Xperia ","1 V,1 VI,5 V,10 VI");
+ph("Nothing","Nothing ","Phone (1),Phone (2),Phone (2a),Phone (3a)");
+const GEN_PH={b:"Outro",m:"Perfil genérico"};
+function phoneF(d){const s=(d.b+" "+d.m).toLowerCase();
+  if(/ultra|pro|rog|\bgt|s2[2-9]|find x|pixel (8|9|10)|x80|magic|xperia 1|flip|fold/.test(s))return .98;
+  if(/\b[ame]\d|hot|spark|\bc\d|redmi \d|\by\d\d|nord ce/.test(s))return 1.02;
+  return 1}
+
+/* ===== Mouses: [marca, modelo, sensor, DPI máx., classe 1-3, sensor confirmado] ===== */
+const M=[
+["Logitech","G102 Lightsync","Mercury",8000,2,1],["Logitech","G203 Lightsync","Mercury",8000,2,1],
+["Logitech","G305 Lightspeed","HERO 12K",12000,3,1],["Logitech","G403 Hero","HERO 25K",25600,3,1],
+["Logitech","G502 Hero","HERO 25K",25600,3,1],["Logitech","G502 X","HERO 25K",25600,3,1],
+["Logitech","G Pro Wireless","HERO 25K",25600,3,1],["Logitech","G Pro X Superlight","HERO 25K",25600,3,1],
+["Logitech","G Pro X Superlight 2","HERO 2",32000,3,1],["Logitech","G604 Lightspeed","HERO 25K",25600,3,1],
+["Logitech","M170","Óptico básico",1000,1,1],["Logitech","M185","Óptico básico",1000,1,1],
+["Logitech","M190","Óptico básico",1000,1,1],["Logitech","M280","Óptico básico",1000,1,1],
+["Logitech","M720 Triathlon","Óptico avançado",1000,1,1],
+["Razer","DeathAdder Essential","Óptico 6400 DPI",6400,2,1],["Razer","DeathAdder V2","Focus+",20000,3,1],
+["Razer","DeathAdder V2 Pro","Focus+",20000,3,1],["Razer","DeathAdder V3","Focus Pro 30K",30000,3,1],
+["Razer","Viper","5G Advanced Optical",16000,3,1],["Razer","Viper Mini","Óptico 8500 DPI",8500,2,1],
+["Razer","Viper V2 Pro","Focus Pro 30K",30000,3,1],["Razer","Basilisk V3","Focus+",26000,3,1],
+["HyperX","Pulsefire Core","Pixart PAW3327",6200,2,1],["HyperX","Pulsefire FPS Pro","Pixart PMW3389",16000,3,1],
+["HyperX","Pulsefire Haste","Pixart PAW3335",16000,3,1],["HyperX","Pulsefire Surge","Pixart PMW3389",16000,3,1],
+["SteelSeries","Rival 3","TrueMove Core",8500,2,1],["SteelSeries","Aerox 3","TrueMove Core",8500,2,1],
+["SteelSeries","Rival 5","TrueMove Air",18000,3,1],["SteelSeries","Prime","TrueMove Pro",18000,3,1],
+["Corsair","Harpoon RGB","Óptico 6000 DPI",6000,2,0],["Corsair","M65 RGB Elite","Óptico 18000 DPI",18000,3,0],
+["Redragon","M601 Centrophorus","Óptico 3200 DPI",3200,2,0],["Redragon","M602 Griffin","Óptico 7200 DPI",7200,2,0],
+["Redragon","M607 Griffin","Óptico 7200 DPI",7200,2,0],["Redragon","M711 Cobra","Óptico 10000 DPI",10000,2,0],
+["Redragon","M719 Invader","Óptico 10000 DPI",10000,2,0],
+["Multilaser","Mouse óptico comum","Óptico básico",1000,1,0],["Multilaser","Mouse gamer básico","Óptico 3200 DPI",3200,2,0]
+["Logitech","G203 Prodigy","Óptico 8000 DPI",8000,2,0],["Logitech","G304 Lightspeed","HERO",12000,2,0],["Logitech","G703 Lightspeed","HERO",16000,3,0],["Logitech","G903 Lightspeed","HERO",16000,3,0],["Logitech","G Pro","HERO 25K",25600,3,0],["Logitech","G Pro X Superlight","HERO 25K",25600,3,1],["Logitech","G PRO X Wireless","HERO",16000,3,0],["Logitech","G300s","Óptico 2500 DPI",2500,1,0],["Logitech","B100","Óptico 1000 DPI",1000,1,0],["Logitech","G240","Óptico 6000 DPI",6000,2,0],["Logitech","G102 Prodigy","Óptico 8000 DPI",8000,2,0],
+["Razer","Cobra","Óptico 8500 DPI",8500,2,0],["Razer","Cobra Pro","Focus Pro 30K",30000,3,0],["Razer","Abyssus V2","Óptico 6400 DPI",6400,2,0],["Razer","Naga Trinity","Óptico 16000 DPI",16000,3,0],["Razer","Orochi V2","Óptico 18000 DPI",18000,2,0],["Razer","Basilisk X HyperSpeed","Óptico 16000 DPI",16000,2,0],["Razer","Viper 8KHz","Focus Pro 30K",30000,3,0],["Razer","Deathadder Essential","Óptico 6400 DPI",6400,2,0],
+["Pulsar","X2","Pixart",26000,3,0],["Pulsar","X2 Mini","Pixart",26000,3,0],["Pulsar","X2V2","Pixart",26000,3,0],["Pulsar","X2H","Pixart",26000,3,0],["Pulsar","Superlight","Pixart",26000,3,0],
+["Glorious","Model O","Óptico 19000 DPI",19000,3,0],["Glorious","Model O-","Óptico 19000 DPI",19000,3,0],["Glorious","Model D","Óptico 24000 DPI",24000,3,0],["Glorious","Model D-","Óptico 24000 DPI",24000,3,0],
+["Redragon","M711 Cobra","Óptico 10000 DPI",10000,2,0],["Redragon","M610 Predator","Óptico 4800 DPI",4800,1,0],["Redragon","M612 Predator","Óptico 12400 DPI",12400,2,0],["Redragon","M988 King Cobra","Óptico 12400 DPI",12400,2,0],["Redragon","Storm M808","Óptico 10000 DPI",10000,2,0],["Redragon","Centrophorus M601","Óptico 3200 DPI",3200,2,0],["Redragon","Inquisitor M715","Óptico 8000 DPI",8000,2,0],
+["Fantech","X5S Zeus","Óptico 6400 DPI",6400,2,0],["Fantech","Helios XD3","Óptico 6400 DPI",6400,2,0],["Fantech","Raigor II WGC2","Óptico 6400 DPI",6400,2,0],["Fantech","Venom XD7","Óptico 8000 DPI",8000,2,0],
+["HyperX","Pulsefire Raid","Pixart",16000,3,0],["HyperX","Pulsefire Dart","Pixart",16000,2,0],
+["Rapoo","VT9 Pro","Óptico 16000 DPI",16000,3,0],["Rapoo","VT200","Óptico 4000 DPI",4000,1,0],["Rapoo","N100","Óptico 1000 DPI",1000,1,0],
+["Havit","MS959","Óptico 3200 DPI",3200,1,0],["Havit","MS1003","Óptico 3200 DPI",3200,1,0],["Havit","MS72","Óptico 2400 DPI",2400,1,0],
+["Microsoft","Basic Optical","Óptico 1000 DPI",1000,1,0],["Microsoft","Bluetooth Mouse","Óptico 1000 DPI",1000,1,0],
+["Dell","MS116","Óptico 1000 DPI",1000,1,0],["Dell","MS3220","Óptico 1600 DPI",1600,1,0],
+["Lenovo","Legion M600","Óptico 16000 DPI",16000,3,0],["Lenovo","M120","Óptico 1000 DPI",1000,1,0],
+["Cooler Master","MM720","Óptico 16000 DPI",16000,3,0],["Cooler Master","MasterMouse MM710","Óptico 16000 DPI",16000,3,0],["Cooler Master","MM310","Óptico 6000 DPI",6000,2,0],
+["Corsair","Katar Pro","Óptico 18000 DPI",18000,3,0],["Corsair","Nightsabre","Óptico 18000 DPI",18000,3,0],
+["SteelSeries","Rival 110","TrueMove1",8500,2,0],["SteelSeries","Rival 600","TrueMove Pro",12000,3,0],["SteelSeries","Sensei Ten","TrueMove Pro",18000,3,0],
+["Multilaser","Mouse gamer MO300","Óptico 3200 DPI",3200,2,0],["Multilaser","Mouse USB comum","Óptico 1000 DPI",1000,1,0],
+["Logitech","G502 Lightspeed","HERO 25K",25600,3,0],["Logitech","G502 X Plus","HERO 25K",25600,3,0],["Logitech","G502 SE Hero","HERO",16000,3,0],["Logitech","G900 Chaos Spectrum","Óptico 12000 DPI",12000,3,0],["Logitech","G Pro 2 Lightspeed","HERO 2",32000,3,0],["Logitech","G Pro X 2 Lightspeed","HERO 2",32000,3,0],["Logitech","M90","Óptico 1000 DPI",1000,1,0],["Logitech","M100","Óptico 1000 DPI",1000,1,0],["Logitech","M235","Óptico 1000 DPI",1000,1,0],["Logitech","M330 Silent","Óptico 1000 DPI",1000,1,0],["Logitech","MX Master 3S","Darkfield",8000,3,0],["Logitech","MX Anywhere 3","Darkfield",4000,2,0],
+["Razer","Viper Ultimate","Óptico 20000 DPI",20000,3,0],["Razer","Viper Mini Signature","Óptico 8500 DPI",8500,2,0],["Razer","DeathAdder V2 X HyperSpeed","Óptico 14000 DPI",14000,2,0],["Razer","DeathAdder V2 Mini","Óptico 8500 DPI",8500,2,0],["Razer","Basilisk V2","Focus+",20000,3,0],["Razer","Basilisk Essential","Óptico 6400 DPI",6400,2,0],["Razer","Lancehead Wireless","Focus Pro 30K",30000,3,0],["Razer","Mamba Wireless","Óptico 16000 DPI",16000,3,0],
+["Zowie","EC2","Óptico 3200 DPI",3200,2,0],["Zowie","FK2","Óptico 3200 DPI",3200,2,0],["Zowie","S2","Óptico 3200 DPI",3200,2,0],["Zowie","ZA12","Óptico 3200 DPI",3200,2,0],
+["HyperX","Pulsefire Haste 2","Pixart",26000,3,0],["HyperX","Pulsefire Haste 2 Wireless","Pixart",26000,3,0],["HyperX","Pulsefire Core RGB","Pixart",6200,2,0],
+["SteelSeries","Rival 3 Wireless","TrueMove Core",18000,2,0],["SteelSeries","Aerox 9","TrueMove Air",18000,3,0],["SteelSeries","Rival 600 Wireless","TrueMove Pro",12000,3,0],
+["Corsair","Harpoon Wireless","Óptico 10000 DPI",10000,2,0],["Corsair","Darkcore RGB Pro","Óptico 18000 DPI",18000,3,0],["Corsair","Ironclaw RGB","Óptico 18000 DPI",18000,3,0],
+["Redragon","M908 Impact","Óptico 12400 DPI",12400,2,0],["Redragon","M690 Pegasus","Óptico 7200 DPI",7200,2,0],["Redragon","M910 Ranger","Óptico 12400 DPI",12400,2,0],["Redragon","M686 Vampire","Óptico 4000 DPI",4000,1,0],["Redragon","Lonsdale M716","Óptico 8000 DPI",8000,2,0],
+["Fantech","Raigor III WGC6","Óptico 6400 DPI",6400,2,0],["Fantech","Helios XD5","Óptico 6400 DPI",6400,2,0],["Fantech","Atlas XD5","Óptico 12000 DPI",12000,2,0],["Fantech","Vertex X7","Óptico 12000 DPI",12000,2,0],
+["Pulsar","Xlite","Pixart",26000,3,0],["Pulsar","Xlite V2","Pixart",26000,3,0],["Pulsar","Xlite Wireless","Pixart",26000,3,0],
+["Glorious","Model I","Óptico 19000 DPI",19000,3,0],["Glorious","Model O Wireless","Óptico 19000 DPI",19000,3,0],
+["Rapoo","VT3 Pro","Óptico 16000 DPI",16000,3,0],["Rapoo","VT3","Óptico 12000 DPI",12000,2,0],["Rapoo","M10 Plus","Óptico 1600 DPI",1600,1,0],["Rapoo","N200","Óptico 1000 DPI",1000,1,0],
+["Havit","MS75GT","Óptico 4800 DPI",4800,2,0],["Havit","MS959 Pro","Óptico 6400 DPI",6400,2,0],
+["Microsoft","Classic Mouse","Óptico 1000 DPI",1000,1,0],["Microsoft","Mouse Sem Fio 1850","Óptico 1000 DPI",1000,1,0],
+["Lenovo","Legion M500 RGB","Óptico 16000 DPI",16000,3,0],["Lenovo","Lecoo Mouse","Óptico 1200 DPI",1200,1,0],
+["Cooler Master","MasterMouse MM730","Óptico 16000 DPI",16000,3,0],["Cooler Master","MM711","Óptico 16000 DPI",16000,3,0],
+["Motospeed","V60","Óptico 6400 DPI",6400,2,0],["Motospeed","V70","Óptico 6400 DPI",6400,2,0],["Motospeed","V99","Óptico 12000 DPI",12000,2,0],
+["Dell","MS819","Óptico 1600 DPI",1600,1,0],["Dell","WM126","Óptico 1000 DPI",1000,1,0],
+["Multilaser","Mouse gamer MO282","Óptico 3200 DPI",3200,2,0],["Multilaser","Mouse gamer MO258","Óptico 2400 DPI",2400,1,0],
+].map(a=>({b:a[0],m:a[1],s:a[2],max:a[3],c:a[4],ok:a[5]}));
+const GEN_M={b:"Outro",m:"Mouse genérico",s:"Desconhecido",max:3200,c:2,ok:0};
+const SW={Logitech:"Logitech G HUB",Razer:"Razer Synapse",HyperX:"HyperX NGENUITY",Corsair:"Corsair iCUE",SteelSeries:"SteelSeries GG",Redragon:"Software Redragon",Multilaser:"Sem software",Outro:"Outro"};
+const SAFE={1:1000,2:1600,3:3200},CLS={1:"básica",2:"intermediária",3:"alta"};
+
+/* ===== Cálculo (sem aleatoriedade) ===== */
+const BASE={capa:[100,100,97,86,57,84],rush:[100,100,97,87,59,85],balanced:[95,93,89,83,57,75],precision:[89,85,80,74,50,66]};
+const OBJX={capa:.9,rush:1.2,balanced:1,precision:.75},OBJY={capa:1,rush:1.1,balanced:1,precision:.8},FIREY={hold:.95,tap:1.05,toggle:1};
+const NAMES=["Geral (jogo)","Ponto vermelho","Mira 2x","Mira 4x","Mira AWM","Olhadinha"];
+const r1=v=>Math.round(v*10)/10;
+/* DPI recomendada por classe do sensor, limitada à DPI máxima do mouse */
+function recommendDpi(m){const ref={1:800,2:1000,3:1200}[m.c]||800;return Math.max(400,Math.min(ref,m.max))}
+function compute(i){
+  const dpiEf=Math.min(i.dpi,i.mouse.max),accel=i.enh==="sim"||i.raw==="acc";
+  const f=(800/dpiEf)*Math.sqrt(i.res/1920)*(accel?.88:1)*phoneF(i.phone);
+  let X=4.5*f*OBJX[i.obj],Y=4*f*OBJY[i.obj]*FIREY[i.fire];
+  const raw={X,Y};
+  if(i.xc>0)X=lim(X,i.xc*.6,i.xc*1.4);
+  if(i.yc>0)Y=lim(Y,i.yc*.6,i.yc*1.4);
+  X=r1(lim(X,.5,10));Y=r1(lim(Y,.5,10));
+  const t=[];
+  t.push("Onde mexer: "+EMU[i.emu]);
+  if(i.dpi>i.mouse.max)t.push("A DPI informada passa do máximo do sensor ("+i.mouse.max.toLocaleString("pt-BR")+"). Usei "+i.mouse.max.toLocaleString("pt-BR")+" no cálculo.");
+  else if(i.mouse.c<3&&dpiEf>SAFE[i.mouse.c])t.push("Sensor de classe "+CLS[i.mouse.c]+" com DPI acima de "+SAFE[i.mouse.c].toLocaleString("pt-BR")+" pode tremer. Prefira de 800 a "+SAFE[i.mouse.c].toLocaleString("pt-BR")+".");
+  if(dpiEf<400)t.push("DPI abaixo de 400 deixa o movimento travado. Prefira 400 ou mais.");
+  if(accel)t.push("Aceleração ligada: desative “Aprimorar a precisão do ponteiro” (Painel de Controle → Mouse → Opções do ponteiro) e use curva linear no Raw Accel. Reduzi 12% para compensar, mas o certo é desligar.");
+  if(i.enh==="ns")t.push("Confira “Aprimorar a precisão do ponteiro” no Windows. Ela deve ficar desligada.");
+  if(i.snap==="sim")t.push("Angle snap ligado: desligue no software do mouse. Ele corrige o movimento em linha e atrapalha o arrasto para subir capa.");
+  if(i.snap==="ns")t.push("Não sabe o angle snap? Procure no software do mouse e deixe desligado.");
+  if(i.fix==="nao"&&accel)t.push("MouseFix é um ajuste de registro de terceiros para tirar a aceleração do Windows. Em geral, desligar a precisão do ponteiro já resolve. Se aplicar, crie um ponto de restauração antes.");
+  if(+i.poll===125)t.push("Polling de 125 Hz é baixo. Se o mouse permitir, use 500 ou 1000 Hz.");
+  t.push(i.fire==="hold"?"Segurar o clique: no tiro em rajada, puxe a mira levemente para baixo para controlar o recuo. Reduzi o Y em 5%.":i.fire==="tap"?"Toque curto: o primeiro tiro precisa chegar logo na cabeça. Subi o Y em 5%.":"Modo alternar: mantive o Y sem ajuste de disparo.");
+  if(i.mouse.user)t.push("Sensor informado por você. Confira na ficha técnica do fabricante se ele está correto.");
+  else if(!i.mouse.ok)t.push("O sensor deste mouse não foi confirmado. Confira a ficha técnica do fabricante.");
+  if(i.xc>0&&(raw.X<i.xc*.6||raw.X>i.xc*1.4)||i.yc>0&&(raw.Y<i.yc*.6||raw.Y>i.yc*1.4))t.push("Aproximei os valores do seu eixo atual para não mudar demais de uma vez. Teste e repita o ajuste.");
+  t.push("No Free Fire, deixe Geral, Ponto vermelho, Mira 2x, Mira 4x, Mira AWM e Olhadinha em 0. A mira é controlada só pelo X e Y do emulador.");
+  t.push("Para ajustar: se a mira passa da cabeça, reduza o Y de 3 a 5%. Se para no peito, suba o Y de 3 a 5%. Mude um valor por vez.");
+  return {X,Y,t};
+}
+
+/* ===== Busca com confirmação ===== */
+const sel={phone:null,mouse:null};
+function setupSearch(cfg){
+  const inp=$(cfg.id),list=$(cfg.id+"list"),conf=$(cfg.id+"conf");
+  let items=[],hi=-1;
+  function mkBtn(txt,cls,fn){const b=document.createElement("button");b.type="button";b.className=cls;b.textContent=txt;b.addEventListener("click",fn);return b}
+  function line(txt){const d=document.createElement("div");d.className="hint";d.textContent=txt;return d}
+  function freeOpt(){const t=inp.value.trim();if(!t)return null;return cfg.fallbackFor?cfg.fallbackFor(t):cfg.fallback}
+  function paint(){
+    list.innerHTML="";
+    if(!inp.value.trim())return;
+    items.forEach((it,k)=>list.appendChild(mkBtn(it.label,"opt"+(k===hi?" hi":""),()=>ask(it.d))));
+    const t=inp.value.trim();
+    list.appendChild(line(items.length?"Não achou? Use o texto digitado:":"Não encontramos esse nome na base. Você pode usar o texto digitado:"));
+    list.appendChild(mkBtn('Usar "'+t+'" como texto livre',"opt free",()=>{const d=freeOpt();if(d)confirm(d,true)}));
+  }
+  function render(){
+    sel[cfg.key]=null;conf.innerHTML="";hi=-1;items=[];
+    if(cfg.manual)cfg.manual();
+    const q=inp.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    if(q.length){
+      items=cfg.data.filter(d=>q.every(t=>cfg.text(d).toLowerCase().includes(t))).slice(0,8)
+        .map(d=>({label:cfg.text(d).replace(/ \| .*/,""),d}));
+    }
+    paint();
+  }
+  function ask(d){
+    items=[];hi=-1;list.innerHTML="";conf.innerHTML="";
+    const box=document.createElement("div");box.className="conf";
+    const q=document.createElement("div");q.textContent=cfg.ask(d);box.appendChild(q);
+    const row=document.createElement("div");row.className="row";
+    row.appendChild(mkBtn("Sim, é esse","primary",()=>confirm(d,false)));
+    row.appendChild(mkBtn("Não, trocar","secondary",render));
+    box.appendChild(row);conf.appendChild(box);
+  }
+  function confirm(d,free){
+    sel[cfg.key]=d;items=[];hi=-1;list.innerHTML="";conf.innerHTML="";
+    const box=document.createElement("div");box.className="conf ok";
+    const t=document.createElement("div");t.innerHTML="<b>✔ Confirmado:</b> ";t.appendChild(document.createTextNode(d.b+" "+d.m));box.appendChild(t);
+    if(free)box.appendChild(line("Texto livre: não está na base, então o cálculo usa a estimativa genérica."));
+    cfg.details(d).forEach(x=>box.appendChild(line(x)));
+    conf.appendChild(box);
+    if(cfg.after)cfg.after(d);
+  }
+  inp.addEventListener("input",render);
+  inp.addEventListener("keydown",e=>{
+    if(e.key==="ArrowDown"){if(items.length){hi=(hi+1)%items.length;paint()}if(e.preventDefault)e.preventDefault()}
+    else if(e.key==="ArrowUp"){if(items.length){hi=(hi-1+items.length)%items.length;paint()}if(e.preventDefault)e.preventDefault()}
+    else if(e.key==="Enter"){
+      if(e.preventDefault)e.preventDefault();
+      if(hi>=0&&items[hi])ask(items[hi].d);
+      else if(items.length===1)ask(items[0].d);
+      else if(inp.value.trim()){const d=freeOpt();if(d)confirm(d,true)}
+    }
+    else if(e.key==="Escape"){items=[];hi=-1;list.innerHTML=""}
+  });
+}
+(function(){
+  const norm=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
+  const link=$("mlink"),status=$("mlinkstatus"),box=$("msearch");
+  link.addEventListener("input",()=>{
+    const raw=link.value.trim();
+    if(!raw){status.textContent="";return}
+    let url;try{url=decodeURIComponent(raw)}catch(e){url=raw}
+    const u=norm(url);
+    let best=null;
+    M.forEach(m=>{
+      const mm=norm(m.m),bb=norm(m.b);
+      if(bb!=="outro"&&!u.includes(bb))return;
+      if(mm.length<3||!u.includes(mm))return;
+      if(!best||mm.length>norm(best.m).length)best=m;
+    });
+    if(!best){status.textContent="Não encontrei o modelo no texto do link. Pesquise pelo nome acima ou use \"Usar meu mouse\".";return}
+    box.value=best.b+" "+best.m;
+    box.dispatchEvent(new Event("input"));
+    status.textContent="Identificado pelo link: "+best.b+" "+best.m+". Toque na sugestão abaixo para confirmar.";
+  });
+})();
+(function(){
+  const web=$("mweb"),box=$("msearch");
+  function upd(){const t=box.value.trim();web.href=t?"https://www.google.com/search?q="+encodeURIComponent(t+" mouse sensor ficha técnica DPI"):"#";web.style.display=t?"block":"none"}
+  box.addEventListener("input",upd);upd();
+})();
+setupSearch({id:"psearch",key:"phone",data:P,text:d=>d.b+" "+d.m,ask:d=>"Você escolheu "+d.m+" ("+d.b+"). É esse celular mesmo?",
+  fallback:GEN_PH,fallbackFor:t=>({b:"Outro",m:t}),fallbackLabel:"Usar perfil genérico de celular",details:d=>["Marca: "+d.b,"Modelo: "+d.m]});
+setupSearch({id:"msearch",key:"mouse",data:M,text:d=>d.b+" "+d.m+" "+d.s,ask:d=>"Você escolheu o mouse "+d.b+" "+d.m+". É esse mouse mesmo?",
+  fallback:GEN_M,fallbackLabel:"Usar meu mouse (informar DPI máxima)",
+  fallbackFor:t=>({b:"Outro",m:t||"Mouse genérico",s:"Não confirmado",max:Math.max(100,Math.min(26000,+($("mmax").value)||3200)),c:2,ok:0}),
+  details:d=>["Sensor: "+d.s+(d.ok?"":" (não confirmado)"),"DPI máxima: "+d.max.toLocaleString("pt-BR"),"Classe do sensor: "+CLS[d.c]],
+  after:d=>{if(SW[d.b])$("msoft").value=SW[d.b]}});
+
+/* ===== Formulário ===== */
+function fill(s,items){s.innerHTML="";items.forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;s.appendChild(o)})}
+fill($("emu"),Object.keys(EMU));fill($("msoft"),[...new Set(Object.values(SW))]);
+let cur=null,last=null;
+function read(){
+  const dpiRaw=$("dpi").value.trim();
+  const xc=$("xc").value===""?0:+$("xc").value,yc=$("yc").value===""?0:+$("yc").value;
+  if(!sel.phone){alert("Pesquise e confirme o celular do emulador.");return null}
+  if(!sel.mouse){alert("Pesquise e confirme o mouse.");return null}
+  const dpiAuto=dpiRaw==="";
+  const dpi=dpiAuto?recommendDpi(sel.mouse):+dpiRaw;
+  if(!dpi||dpi<100||dpi>26000){alert("Digite uma DPI válida entre 100 e 26000.");return null}
+  if(xc<0||xc>10||yc<0||yc>10){alert("Os valores do eixo X e Y devem ficar entre 0 e 10.0.");return null}
+  const mouse=Object.assign({},sel.mouse);
+  const sensorIn=$("msensor").value.trim();
+  if(sensorIn){mouse.s=sensorIn;mouse.ok=0;mouse.user=true}
+  return {dpiAuto,emu:$("emu").value,res:+$("res").value,obj:$("objective").value,phone:sel.phone,mouse,dpi,poll:$("poll").value,
+    xc,yc,snap:$("snap").value,fix:$("fix").value,raw:$("raw").value,enh:$("enh").value,fire:$("fire").value};
+}
+function show(){
+  const i=read();if(!i)return;last=i;cur=compute(i);
+  $("summary").textContent=i.emu+" · "+i.phone.b+" "+i.phone.m+" · "+i.mouse.b+" "+i.mouse.m+" ("+i.mouse.s+") · DPI "+i.dpi+(i.dpiAuto?" (recomendada para este sensor)":"");
+  const c=$("values");c.innerHTML="";
+  const add=(n,v,e)=>{const d=document.createElement("div");d.className="value-card";const s=document.createElement("small");s.textContent=n;const b=document.createElement("strong");b.textContent=v;d.appendChild(s);d.appendChild(b);if(e){const m=document.createElement("em");m.textContent=e;d.appendChild(m)}c.appendChild(d)};
+  const cmp=(a,b)=>b>0?"atual "+b.toFixed(1)+" ("+(a>=b?"+":"")+Math.round((a/b-1)*100)+"%)":"";
+  add("Eixo X · esquerda e direita",cur.X.toFixed(1),cmp(cur.X,i.xc));
+  add("Eixo Y · cima e baixo",cur.Y.toFixed(1),cmp(cur.Y,i.yc));
+  const tp=$("tips");tp.innerHTML="";
+  cur.t.forEach(x=>{const d=document.createElement("div");d.className="hint";d.textContent=x;tp.appendChild(d)});
+  $("copyStatus").textContent="";$("result").style.display="block";$("result").scrollIntoView({behavior:"smooth"});
+}
+$("generate").addEventListener("click",show);$("refresh").addEventListener("click",show);
+$("copy").addEventListener("click",async()=>{
+  if(!cur||!last)return;
+  let s="PRIME SENSI - EMULADOR\nEmulador: "+last.emu+"\nCelular: "+last.phone.b+" "+last.phone.m+"\nMouse: "+last.mouse.b+" "+last.mouse.m+" ("+last.mouse.s+")\nDPI: "+last.dpi+"\n\nEixo X: "+cur.X.toFixed(1)+"\nEixo Y: "+cur.Y.toFixed(1)+"\n";
+  s+="\nFree Fire: Geral, Ponto vermelho, Mira 2x, Mira 4x, Mira AWM e Olhadinha em 0\n";
+  try{await navigator.clipboard.writeText(s);$("copyStatus").textContent="Configuração copiada!"}catch{$("copyStatus").textContent="Não foi possível copiar."}
+});
+</script>
+</body>
+</html>
